@@ -1,11 +1,13 @@
-from unittest.util import _MAX_LENGTH
 from rest_framework import serializers
-from .models import Project, Pledge
+from .models import Project, Pledge, Comment
 
+# TRY SIMPLIFY THIS IN THE FUTURE BY USING serializers.ModelSerializer
+
+# Pledge Serializer
 class PledgeSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField()
     amount = serializers.IntegerField()
-    comment = serializers.CharField(max_length=200)
+    comment = serializers.CharField(max_length=None)
     anonymous = serializers.BooleanField()
     supporter = serializers.ReadOnlyField(source='supporter.id')
     project_id = serializers.IntegerField()
@@ -14,14 +16,36 @@ class PledgeSerializer(serializers.Serializer):
         return Pledge.objects.create(**validated_data)
 
 
+# Comment Serializer
+class CommentSerializer(serializers.Serializer):
+    id = serializers.ReadOnlyField()
+    project = serializers.ReadOnlyField(source='project.id')
+    author = serializers.ReadOnlyField(source='author.id')
+    date = serializers.DateField()
+    body = serializers.CharField(max_length=None)
+
+    def create(self, validated_data):
+        return Comment.objects.create(**validated_data)
+
+
+class CommentDetailSerializer(CommentSerializer):
+
+    def update(self, instance, validated_data):
+        instance.body = validated_data.get('body', instance.body)
+        instance.save()
+        return instance
+
+# Project Serializer
 class ProjectSerializer(serializers.Serializer):
     id = serializers.ReadOnlyField()
     title = serializers.CharField(max_length=200)
     description = serializers.CharField(max_length=None)
-    goal = serializers.IntegerField()
+    goal_amount = serializers.IntegerField()
+    amount_raised = serializers.IntegerField()
     image = serializers.URLField()
-    is_open = serializers.BooleanField()
-    date_created = serializers.DateTimeField()
+    active = serializers.BooleanField()
+    date_created = serializers.DateField()
+    date_due = serializers.DateField()
     owner = serializers.ReadOnlyField(source='owner.id')
     # pledges = PledgeSerializer(many=True, read_only=True)
 
@@ -29,16 +53,19 @@ class ProjectSerializer(serializers.Serializer):
         return Project.objects.create(**validated_data)
 
 
+
 class ProjectDetailSerializer(ProjectSerializer):
     pledges = PledgeSerializer(many=True, read_only=True)
+    comments = CommentSerializer(many=True, read_only=True)
 
     def update(self, instance, validated_data):
           instance.title = validated_data.get('title', instance.title)
           instance.description = validated_data.get('description', instance.description)
-          instance.goal = validated_data.get('goal', instance.goal)
+          instance.goal_amount = validated_data.get('goal_amount', instance.goal_amount)
+          instance.amount_raised = validated_data.get('amount_raised', instance.amount_raised)
           instance.image = validated_data.get('image', instance.image)
-          instance.is_open = validated_data.get('is_open', instance.is_open)
-          instance.date_created = validated_data.get('date_created', instance.date_created)
-          instance.owner = validated_data.get('owner', instance.owner)
+          instance.active = validated_data.get('active', instance.active)
+          instance.date_due = validated_data.get('date_due', instance.date_due)
           instance.save()
           return instance
+
