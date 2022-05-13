@@ -19,6 +19,7 @@ class PledgeList(APIView):
         serializer = PledgeSerializer(pledges, many=True)
         return Response(serializer.data)
 
+# Post a pledge 
     def post(self, request):
         serializer = PledgeSerializer(data=request.data)
         if serializer.is_valid():
@@ -68,6 +69,7 @@ class CommentList(APIView):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
+# Post a comment
     def post(self, request):
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():
@@ -129,6 +131,7 @@ class ProjectList(APIView):
         serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
+# Post a project
     def post(self, request):
         serializer = ProjectSerializer(data=request.data)
         if serializer.is_valid():

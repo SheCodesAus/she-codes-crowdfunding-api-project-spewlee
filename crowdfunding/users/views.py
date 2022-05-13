@@ -1,9 +1,12 @@
 from django.http import Http404
 from rest_framework.views import APIView
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status, permissions
 from .models import Club, CustomUser, Sport
 from .serializers import CustomUserSerializer, CustomUserDetailSerializer, ClubSerializer, ClubDetailSerializer, SportSerializer
+
 
 # TRY SIMPLIFY THIS IN THE FUTURE BY USING generics.ListAPIView and generics.RetrieveUpdateDestroyAPIView
 
@@ -21,6 +24,13 @@ class CustomUserList(APIView):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors)
+
+# Give a new user a token
+class CustomObtainAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        response = super(CustomObtainAuthToken, self).post(request, *args, **kwargs)
+        token = Token.objects.get(key=response.data['token'])
+        return Response({'token': token.key, 'id': token.user_id})
 
 # Display a single user and allow them to edit
 class CustomUserDetail(APIView):
@@ -60,6 +70,7 @@ class ClubList(APIView):
           serializer = ClubSerializer(clubs, many=True)
           return Response(serializer.data)
 
+# Create a club
     def post(self, request):
         serializer = ClubSerializer(data=request.data)
         if serializer.is_valid():
